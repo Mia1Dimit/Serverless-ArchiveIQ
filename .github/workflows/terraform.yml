@@ -1,0 +1,217 @@
+name: Serverless-ArchiveIQ
+
+on:
+  push:
+    branches:
+      - '**'
+      - '!main'
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+env:
+  TF_VERSION: "1.8.5"
+  AWS_REGION: "eu-west-1"
+  PROJECT_NAME: "serverless-archiveiq"
+
+jobs:
+
+  setup:
+    name: Setup TF
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Cache Terraform
+        uses: actions/cache@v4
+        with:
+          path: |
+            .terraform
+            .terraform.lock.hcl
+          key: terraform-${{ hashFiles('**/*.tf') }}
+
+  validate:
+    name: TF Validate
+    runs-on: ubuntu-latest
+    needs: setup
+    if: github.event_name == 'push'
+    env:
+      AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      TF_TOKEN_your_registry_hostname: ${{ secrets.TF_REGISTRY_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Restore Terraform cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .terraform
+            .terraform.lock.hcl
+          key: terraform-${{ hashFiles('**/*.tf') }}
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
+            -backend-config="key=${{ env.PROJECT_NAME }}/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}"
+
+      - name: Terraform Format
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        run: terraform validate
+
+  plan:
+    name: TF Plan
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'push'
+    env:
+      AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      TF_TOKEN_your_registry_hostname: ${{ secrets.TF_REGISTRY_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Restore Terraform cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .terraform
+            .terraform.lock.hcl
+          key: terraform-${{ hashFiles('**/*.tf') }}
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
+            -backend-config="key=${{ env.PROJECT_NAME }}/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}"
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan \
+            -out=tfplan \
+            -no-color 2>&1 | tee tfplan.txt
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: |
+            tfplan
+            tfplan.txt
+          retention-days: 5
+
+  open-pr:
+    name: Open PR
+    runs-on: ubuntu-latest
+    needs: plan
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Download plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+
+      - name: Create or update PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('tfplan.txt', 'utf8').slice(0, 65000);
+            const branch = context.ref.replace('refs/heads/', '');
+
+            const body = `### Terraform Plan — \`${branch}\`
+            > Plan succeeded ✅ — merge to trigger apply.
+            \`\`\`hcl
+            ${plan}
+            \`\`\`
+            `;
+
+            const prs = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${branch}`,
+              base: 'main',
+              state: 'open'
+            });
+
+            if (prs.data.length === 0) {
+              await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `[ArchiveIQ] ${branch}`,
+                head: branch,
+                base: 'main',
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prs.data[0].number,
+                body
+              });
+            }
+
+  apply:
+    name: TF Apply
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    env:
+      AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      TF_TOKEN_your_registry_hostname: ${{ secrets.TF_REGISTRY_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
+            -backend-config="key=${{ env.PROJECT_NAME }}/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}"
+
+      - name: Download plan artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
