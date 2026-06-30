@@ -49,3 +49,70 @@ variable "lambda_functions" {
   }))
   default = {}
 }
+
+variable "s3s" {
+  type = map(object({
+    name                  = string
+    blockpublicacls       = bool
+    blockpublicpolicy     = bool
+    ignorepublicacls      = bool
+    restrictpublicbuckets = bool
+    environment           = string
+    enable_versioning     = string
+    rules = map(object({
+      id     = string
+      status = string
+      expiration = optional(map(object({
+        date = optional(string)
+        days = optional(number)
+      })))
+      transition = optional(map(object({
+        date          = optional(string)
+        days          = optional(number)
+        storage_class = string
+      })))
+      filters = optional(map(object({
+        prefix                   = optional(string)
+        object_size_greater_than = optional(number)
+        object_size_less_than    = optional(number)
+      })))
+    }))
+    notifications = map(object({
+      lambda_function = list(object({
+        id                 = optional(string)
+        lambda_function_arn = string
+        events              = list(string)
+        filter_prefix       = optional(string)
+        filter_suffix       = optional(string)
+      }))
+    }))
+    replication_role = optional(string)
+    replication_rules = list(object({
+      id       = optional(string)
+      status   = string
+      destination = object({
+        bucket = string
+      })
+    }))
+    specifictags          = map(string)
+  }))
+}
+
+variable "agentcore-runtime" {
+  type = map(object({
+    agent_runtime_name = string
+    role_arn           = string
+    description        = optional(string, "")
+    container_uri      = string
+    entry_point        = string
+    runtime            = string
+    s3_bucket          = optional(string, "")
+    s3_prefix          = optional(string, "")
+    s3_version_id      = optional(string, "")
+    network_mode       = optional(string, "bridge")
+    vpc_security_group_ids = optional(list(string), [])
+    vpc_subnet_ids         = optional(list(string), [])
+    server_protocol        = optional(string, "http")
+    environment_variables  = optional(map(string), {})
+  }))
+}
