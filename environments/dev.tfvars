@@ -48,13 +48,13 @@ s3s = {
     environment           = "dev"
     enable_versioning     = "Enabled"
     rules                 = {}
-    notifications         = {
+    notifications = {
       lambda_events = {
         lambda_function = []
       }
     }
-    replication_role      = null
-    replication_rules     = []
+    replication_role  = null
+    replication_rules = []
     specifictags = {
       Purpose = "Document archive for AI analysis"
     }
