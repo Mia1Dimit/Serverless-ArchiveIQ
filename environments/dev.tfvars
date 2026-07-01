@@ -38,7 +38,7 @@ iam_roles = {
 # S3 Buckets: Document archive with Lambda notifications
 # TEMPORARILY DISABLED: S3 bucket creation is hanging in eu-central-1
 # Deploy IAM roles first, then add S3 after debugging
-s3s = {/*
+s3s = { /*
   documents = {
     name                  = "archiveiq-documents-dev"
     blockpublicacls       = true
