@@ -188,10 +188,10 @@ variable "ephemeral_storage" {
 
 locals {
   common_tags = {
-    Application_ID    = var.applicationid
-    Application_Name  = var.applicationname
-    Environment       = var.environment
-    Name              = var.function_name
+    Application_ID   = var.applicationid
+    Application_Name = var.applicationname
+    Environment      = var.environment
+    Name             = var.function_name
   }
   merged_tags = merge(local.common_tags, var.specifictags)
 }

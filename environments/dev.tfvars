@@ -1,6 +1,6 @@
 applicationname = "archiveiq"
-applicationid = "003"
-environment = "dev"
+applicationid   = "003"
+environment     = "dev"
 
 s3s = {}
 

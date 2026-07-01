@@ -16,5 +16,5 @@ variable "role" {
 
 variable "policy" {
   description = "The inline policy document. This is a JSON formatted string. For more information about building IAM policy documents with Terraform"
-  type = string
+  type        = string
 }
