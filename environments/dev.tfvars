@@ -72,3 +72,4 @@ lambda_functions = {}
 
 # Bedrock Agent Runtime: Will be configured after agent is created in AWS console or code
 agent_runtime_configurations = {}
+
