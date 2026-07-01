@@ -79,7 +79,7 @@ variable "s3s" {
     }))
     notifications = map(object({
       lambda_function = list(object({
-        id                 = optional(string)
+        id                  = optional(string)
         lambda_function_arn = string
         events              = list(string)
         filter_prefix       = optional(string)
@@ -88,31 +88,35 @@ variable "s3s" {
     }))
     replication_role = optional(string)
     replication_rules = list(object({
-      id       = optional(string)
-      status   = string
+      id     = optional(string)
+      status = string
       destination = object({
         bucket = string
       })
     }))
-    specifictags          = map(string)
+    specifictags = map(string)
   }))
 }
 
-variable "agentcore-runtime" {
+variable "agent_runtime_configurations" {
   type = map(object({
     agent_runtime_name = string
     role_arn           = string
     description        = optional(string, "")
-    container_uri      = string
-    entry_point        = string
-    runtime            = string
-    s3_bucket          = optional(string, "")
-    s3_prefix          = optional(string, "")
-    s3_version_id      = optional(string, "")
-    network_mode       = optional(string, "bridge")
+    container_uri      = optional(string)
+    code_configuration = optional(object({
+      entry_point   = list(string)
+      runtime       = string
+      s3_bucket     = string
+      s3_prefix     = string
+      s3_version_id = optional(string)
+    }))
+    network_mode           = optional(string, "PUBLIC")
     vpc_security_group_ids = optional(list(string), [])
     vpc_subnet_ids         = optional(list(string), [])
-    server_protocol        = optional(string, "http")
+    server_protocol        = optional(string)
     environment_variables  = optional(map(string), {})
+    name                   = optional(string)
   }))
+  default = {}
 }

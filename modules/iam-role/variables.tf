@@ -36,7 +36,6 @@ variable "permissions_boundary" {
 }
 locals {
   common_tags = {
-    Application_Group = var.applicationgroup
     Application_ID    = var.applicationid
     Application_Name  = var.applicationname
     Environment       = var.environment
