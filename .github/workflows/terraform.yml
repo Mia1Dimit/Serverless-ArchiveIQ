@@ -118,6 +118,7 @@ jobs:
     name: Terraform Apply on Main
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
     env:
@@ -140,14 +141,16 @@ jobs:
             -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
             -backend-config="key=${{ env.TF_STATE_KEY }}" \
             -backend-config="region=eu-west-1" \
-            -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}"
+            -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}" \
+            -lock-timeout=5m
 
       - name: Terraform Plan
         run: |
           terraform -chdir=${{ env.TF_ROOT }} plan \
             -var-file=${{ env.TF_VARS_FILE }} \
             -out=tfplan \
+            -lock-timeout=5m \
             -no-color
 
       - name: Terraform Apply
-        run: terraform -chdir=${{ env.TF_ROOT }} apply -auto-approve tfplan
+        run: terraform -chdir=${{ env.TF_ROOT }} apply -auto-approve -lock-timeout=5m tfplan
