@@ -1,51 +1,53 @@
-name: Serverless-ArchiveIQ
+name: Serverless-ArchiveIQ Terraform
 
 on:
-  push:
-    branches:
-      - '**'
-      - '!main'
   pull_request:
-    types:
-      - closed
     branches:
       - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+    paths:
+      - infra/**
+      - modules/**
+      - environments/**
+      - .github/workflows/terraform.yml
+  push:
+    branches:
+      - main
+    paths:
+      - infra/**
+      - modules/**
+      - environments/**
+      - .github/workflows/terraform.yml
+  workflow_dispatch:
 
 env:
   TF_VERSION: "1.8.5"
   AWS_REGION: "eu-west-1"
-  PROJECT_NAME: "serverless-archiveiq"
+  TF_ROOT: "infra"
+  TF_VARS_FILE: "../environments/dev.tfvars"
+  TF_STATE_KEY: "serverless-archiveiq/dev/terraform.tfstate"
+  TF_IN_AUTOMATION: "true"
+
+concurrency:
+  group: terraform-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-
-  setup:
-    name: Setup TF
+  plan-pr:
+    name: Terraform PR Checks
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-
-      - name: Cache Terraform
-        uses: actions/cache@v4
-        with:
-          path: |
-            .terraform
-            .terraform.lock.hcl
-          key: terraform-${{ hashFiles('**/*.tf') }}
-
-  validate:
-    name: TF Validate
-    runs-on: ubuntu-latest
-    needs: setup
-    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      pull-requests: write
     env:
-      AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: eu-west-1
       TF_TOKEN_your_registry_hostname: ${{ secrets.TF_REGISTRY_TOKEN }}
     steps:
       - name: Checkout
@@ -55,141 +57,73 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
-
-      - name: Restore Terraform cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            .terraform
-            .terraform.lock.hcl
-          key: terraform-${{ hashFiles('**/*.tf') }}
-
-      - name: Terraform Init
-        run: |
-          terraform init \
-            -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
-            -backend-config="key=${{ env.PROJECT_NAME }}/terraform.tfstate" \
-            -backend-config="region=${{ env.AWS_REGION }}" \
-            -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}"
 
       - name: Terraform Format
         run: terraform fmt -check -recursive
 
-      - name: Terraform Validate
-        run: terraform validate
-
-  plan:
-    name: TF Plan
-    runs-on: ubuntu-latest
-    needs: validate
-    if: github.event_name == 'push'
-    env:
-      AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      TF_TOKEN_your_registry_hostname: ${{ secrets.TF_REGISTRY_TOKEN }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-
-      - name: Restore Terraform cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            .terraform
-            .terraform.lock.hcl
-          key: terraform-${{ hashFiles('**/*.tf') }}
-
       - name: Terraform Init
         run: |
-          terraform init \
+          terraform -chdir=${{ env.TF_ROOT }} init \
             -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
-            -backend-config="key=${{ env.PROJECT_NAME }}/terraform.tfstate" \
+            -backend-config="key=${{ env.TF_STATE_KEY }}" \
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}"
 
+      - name: Terraform Validate
+        run: terraform -chdir=${{ env.TF_ROOT }} validate
+
       - name: Terraform Plan
-        id: plan
         run: |
-          terraform plan \
+          terraform -chdir=${{ env.TF_ROOT }} plan \
+            -var-file=${{ env.TF_VARS_FILE }} \
             -out=tfplan \
-            -no-color 2>&1 | tee tfplan.txt
+            -no-color
+
+      - name: Export Plan Text
+        run: terraform -chdir=${{ env.TF_ROOT }} show -no-color tfplan > ${{ env.TF_ROOT }}/tfplan.txt
 
       - name: Upload plan artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tfplan
+          name: tfplan-pr-${{ github.event.pull_request.number }}
           path: |
-            tfplan
-            tfplan.txt
+            ${{ env.TF_ROOT }}/tfplan
+            ${{ env.TF_ROOT }}/tfplan.txt
           retention-days: 5
 
-  open-pr:
-    name: Open PR
-    runs-on: ubuntu-latest
-    needs: plan
-    if: github.event_name == 'push'
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - name: Download plan artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan
-
-      - name: Create or update PR
+      - name: Comment plan summary on PR
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const plan = fs.readFileSync('tfplan.txt', 'utf8').slice(0, 65000);
-            const branch = context.ref.replace('refs/heads/', '');
+            const plan = fs.readFileSync(`${process.env.TF_ROOT}/tfplan.txt`, 'utf8').slice(0, 60000);
+            const body = [
+              '### Terraform Plan',
+              '',
+              '> Plan generated for this PR.',
+              '',
+              '```hcl',
+              plan,
+              '```'
+            ].join('\n');
 
-            const body = `### Terraform Plan — \`${branch}\`
-            > Plan succeeded ✅ — merge to trigger apply.
-            \`\`\`hcl
-            ${plan}
-            \`\`\`
-            `;
-
-            const prs = await github.rest.pulls.list({
+            await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              head: `${context.repo.owner}:${branch}`,
-              base: 'main',
-              state: 'open'
+              issue_number: context.issue.number,
+              body
             });
 
-            if (prs.data.length === 0) {
-              await github.rest.pulls.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title: `[ArchiveIQ] ${branch}`,
-                head: branch,
-                base: 'main',
-                body
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prs.data[0].number,
-                body
-              });
-            }
-
-  apply:
-    name: TF Apply
+  apply-main:
+    name: Terraform Apply on Main
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    permissions:
+      contents: read
     env:
-      AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: eu-west-1
       TF_TOKEN_your_registry_hostname: ${{ secrets.TF_REGISTRY_TOKEN }}
     steps:
       - name: Checkout
@@ -202,16 +136,18 @@ jobs:
 
       - name: Terraform Init
         run: |
-          terraform init \
+          terraform -chdir=${{ env.TF_ROOT }} init \
             -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
-            -backend-config="key=${{ env.PROJECT_NAME }}/terraform.tfstate" \
+            -backend-config="key=${{ env.TF_STATE_KEY }}" \
             -backend-config="region=${{ env.AWS_REGION }}" \
             -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}"
 
-      - name: Download plan artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan
+      - name: Terraform Plan
+        run: |
+          terraform -chdir=${{ env.TF_ROOT }} plan \
+            -var-file=${{ env.TF_VARS_FILE }} \
+            -out=tfplan \
+            -no-color
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform -chdir=${{ env.TF_ROOT }} apply -auto-approve tfplan

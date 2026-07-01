@@ -30,7 +30,7 @@ resource "aws_s3_bucket_ownership_controls" "bucket_ownership_controls" {
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "lifecycle" {
-  count  = length(var.rules) > 0 ? 1 : 0  # Creates only if rules exist
+  count  = length(var.rules) > 0 ? 1 : 0 # Creates only if rules exist
   bucket = aws_s3_bucket.bucket_s3.id
   dynamic "rule" {
     for_each = var.rules

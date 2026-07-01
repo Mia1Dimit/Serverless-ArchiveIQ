@@ -11,7 +11,7 @@ variable "assume_role_policy" {
 variable "description" {
   description = "Description of the role."
   type        = string
-  default = null
+  default     = null
 }
 
 variable "force_detach_policies" {
@@ -36,11 +36,10 @@ variable "permissions_boundary" {
 }
 locals {
   common_tags = {
-    Application_Group = var.applicationgroup
-    Application_ID    = var.applicationid
-    Application_Name  = var.applicationname
-    Environment       = var.environment
-    Name              = var.name
+    Application_ID   = var.applicationid
+    Application_Name = var.applicationname
+    Environment      = var.environment
+    Name             = var.name
   }
   merged_tags = merge(local.common_tags, var.specifictags)
 }

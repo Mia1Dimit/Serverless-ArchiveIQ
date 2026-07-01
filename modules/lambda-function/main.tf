@@ -8,7 +8,7 @@ data "aws_subnet" "subnets_by_id" {
 
 data "aws_security_group" "linked_sg" {
   for_each = toset(local.ecs_sg_names_from_tags)
-  
+
   filter {
     name   = "tag:Name"
     values = [each.key]
@@ -26,10 +26,10 @@ locals {
 ### Creare un file zip del codice sorgente 
 data "archive_file" "lambda_zip" {
   count = var.source_dir != null ? 1 : 0
-  
+
   type        = "zip"
-  source_dir  = var.source_dir    # Points to backend/src
-  output_path = var.output_path   # /tmp/vendors-api.zip
+  source_dir  = var.source_dir  # Points to backend/src
+  output_path = var.output_path # /tmp/vendors-api.zip
   excludes    = ["__pycache__", "*.pyc", ".git"]
 }
 

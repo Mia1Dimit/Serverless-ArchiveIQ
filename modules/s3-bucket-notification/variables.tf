@@ -20,7 +20,7 @@ Each object supports:
 - filter_suffix (optional)
 EOF
   type = list(object({
-    id                 = optional(string)
+    id                  = optional(string)
     lambda_function_arn = string
     events              = list(string)
     filter_prefix       = optional(string)
@@ -40,9 +40,9 @@ Each object supports:
 - filter_suffix (optional)
 EOF
   type = list(object({
-    id           = optional(string)
-    queue_arn    = string
-    events       = list(string)
+    id            = optional(string)
+    queue_arn     = string
+    events        = list(string)
     filter_prefix = optional(string)
     filter_suffix = optional(string)
   }))
@@ -60,9 +60,9 @@ Each object supports:
 - filter_suffix (optional)
 EOF
   type = list(object({
-    id          = optional(string)
-    topic_arn   = string
-    events      = list(string)
+    id            = optional(string)
+    topic_arn     = string
+    events        = list(string)
     filter_prefix = optional(string)
     filter_suffix = optional(string)
   }))

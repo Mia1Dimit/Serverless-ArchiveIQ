@@ -15,5 +15,5 @@ output "agent_runtime_version" {
 
 output "workload_identity_arn" {
   description = "Workload identity ARN for the Bedrock AgentCore Agent Runtime"
-  value       = try(aws_bedrockagentcore_agent_runtime.runtime.workload_identity_details.workload_identity_arn, null)
+  value       = try(aws_bedrockagentcore_agent_runtime.runtime.workload_identity_details[0].workload_identity_arn, null)
 }
