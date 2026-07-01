@@ -3,7 +3,7 @@ applicationid   = "003"
 environment     = "dev"
 
 # IAM Roles: Lambda Execution + Bedrock Agent Runtime
-iam_roles = { /*
+iam_roles = {
   lambda_execution = {
     name               = "archiveiq-lambda-execution-dev"
     assume_role_policy = "lambda-assume-role-policy.json"
@@ -32,11 +32,11 @@ iam_roles = { /*
       }
     }
     managed_policies = {}
-  }*/
+  }
 }
 
 # S3 Buckets: Document archive with Lambda notifications
-s3s = { /*
+s3s = {
   documents = {
     name                  = "archiveiq-documents-dev"
     blockpublicacls       = true
@@ -46,7 +46,7 @@ s3s = { /*
     environment           = "dev"
     enable_versioning     = "Enabled"
     rules                 = {}
-    notifications = {
+    notifications         = { /*
       lambda_events = {
         lambda_function = [
           {
@@ -58,13 +58,13 @@ s3s = { /*
           }
         ]
       }
-    }
-    replication_role  = null
-    replication_rules = []
+    */ }
+    replication_role      = null
+    replication_rules     = []
     specifictags = {
       Purpose = "Document archive for AI analysis"
     }
-  }*/
+  }
 }
 
 # Lambda Functions: Document Processor
@@ -72,3 +72,4 @@ lambda_functions = {}
 
 # Bedrock Agent Runtime: Will be configured after agent is created in AWS console or code
 agent_runtime_configurations = {}
+
