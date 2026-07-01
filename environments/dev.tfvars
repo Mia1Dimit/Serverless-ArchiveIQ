@@ -38,7 +38,7 @@ iam_roles = {
 # S3 Buckets: Document archive with Lambda notifications
 # TEMPORARILY DISABLED: S3 bucket creation is hanging in eu-central-1
 # Deploy IAM roles first, then add S3 after debugging
-s3s = { /*
+s3s = {
   documents = {
     name                  = "archiveiq-documents-dev"
     blockpublicacls       = true
@@ -50,15 +50,7 @@ s3s = { /*
     rules                 = {}
     notifications         = {
       lambda_events = {
-        lambda_function = [
-          {
-            id                  = "document-processor"
-            lambda_function_arn = "arn:aws:lambda:eu-west-1:ACCOUNT_ID:function:document-processor"
-            events              = ["s3:ObjectCreated:*"]
-            filter_prefix       = "uploads/"
-            filter_suffix       = ""
-          }
-        ]
+        lambda_function = []
       }
     }
     replication_role      = null
@@ -66,7 +58,7 @@ s3s = { /*
     specifictags = {
       Purpose = "Document archive for AI analysis"
     }
-  }*/
+  }
 }
 
 # Lambda Functions: Document Processor
