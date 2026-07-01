@@ -13,7 +13,6 @@ variable "environment" {
   type        = string
 }
 
-
 variable "iam_roles" {
   description = "IAM role configurations"
   type = map(object({
@@ -99,6 +98,7 @@ variable "s3s" {
 }
 
 variable "agent_runtime_configurations" {
+  description = "Bedrock AgentCore Agent Runtime configurations"
   type = map(object({
     agent_runtime_name = string
     role_arn           = string
