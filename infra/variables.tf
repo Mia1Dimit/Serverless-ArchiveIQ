@@ -13,7 +13,6 @@ variable "environment" {
   type        = string
 }
 
-
 variable "iam_roles" {
   description = "IAM role configurations"
   type = map(object({
@@ -79,7 +78,7 @@ variable "s3s" {
     }))
     notifications = map(object({
       lambda_function = list(object({
-        id                  = optional(string)
+        id                 = optional(string)
         lambda_function_arn = string
         events              = list(string)
         filter_prefix       = optional(string)
@@ -88,17 +87,18 @@ variable "s3s" {
     }))
     replication_role = optional(string)
     replication_rules = list(object({
-      id     = optional(string)
-      status = string
+      id       = optional(string)
+      status   = string
       destination = object({
         bucket = string
       })
     }))
-    specifictags = map(string)
+    specifictags          = map(string)
   }))
 }
 
 variable "agent_runtime_configurations" {
+  description = "Bedrock AgentCore Agent Runtime configurations"
   type = map(object({
     agent_runtime_name = string
     role_arn           = string
