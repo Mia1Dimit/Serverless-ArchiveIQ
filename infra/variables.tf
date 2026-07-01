@@ -78,7 +78,7 @@ variable "s3s" {
     }))
     notifications = map(object({
       lambda_function = list(object({
-        id                 = optional(string)
+        id                  = optional(string)
         lambda_function_arn = string
         events              = list(string)
         filter_prefix       = optional(string)
@@ -87,13 +87,13 @@ variable "s3s" {
     }))
     replication_role = optional(string)
     replication_rules = list(object({
-      id       = optional(string)
-      status   = string
+      id     = optional(string)
+      status = string
       destination = object({
         bucket = string
       })
     }))
-    specifictags          = map(string)
+    specifictags = map(string)
   }))
 }
 
