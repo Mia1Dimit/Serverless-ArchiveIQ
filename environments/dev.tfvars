@@ -48,7 +48,7 @@ s3s = {/*
     environment           = "dev"
     enable_versioning     = "Enabled"
     rules                 = {}
-    notifications         = { /*
+    notifications         = {
       lambda_events = {
         lambda_function = [
           {
@@ -60,14 +60,14 @@ s3s = {/*
           }
         ]
       }
-    */ }
+    }
     replication_role      = null
     replication_rules     = []
     specifictags = {
       Purpose = "Document archive for AI analysis"
     }
-  }
-*/}
+  }*/
+}
 
 # Lambda Functions: Document Processor
 lambda_functions = {}
