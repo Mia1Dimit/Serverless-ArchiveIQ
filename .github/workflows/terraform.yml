@@ -83,7 +83,7 @@ jobs:
       - name: Terraform Plan
         run: |
           terraform -chdir=head/infra plan \
-            -var-file=head/environments/dev.tfvars \
+            -var-file=../environments/dev.tfvars \
             -out=tfplan \
             -no-color
 
