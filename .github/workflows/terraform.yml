@@ -92,8 +92,6 @@ jobs:
 
       - name: Infracost Breakdown
         uses: infracost/actions/diff@v4
-        env:
-          INFRACOST_WARN_ON_FAILURE: "true"
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
           base-path: base
