@@ -101,10 +101,10 @@ s3s = {
 # Lambda Functions: Document Processor
 lambda_functions = {
   document_processor = {
-    name    = "archiveiq-document-processor-dev"
-    handler = "handler.handler"
-    runtime = "python3.12"
-    timeout = 60
+    name        = "archiveiq-document-processor-dev"
+    handler     = "handler.handler"
+    runtime     = "python3.12"
+    timeout     = 60
     memory_size = 256
     source_dir  = "../lambda"
     output_path = "/tmp/archiveiq-document-processor-dev.zip"

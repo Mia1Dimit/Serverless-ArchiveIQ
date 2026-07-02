@@ -52,7 +52,7 @@ variable "name" {
 variable "billing_mode" {
   type        = string
   description = "Billing mode: PAY_PER_REQUEST (on-demand) or PROVISIONED"
-  default     = "PAY_PER_REQUEST"  # Recommended for dev/learning
+  default     = "PAY_PER_REQUEST" # Recommended for dev/learning
 }
 
 variable "read_capacity" {
@@ -84,13 +84,13 @@ variable "global_secondary_indexes" {
 variable "enable_point_in_time_recovery" {
   type        = bool
   description = "Enable continuous backups (point-in-time recovery)"
-  default     = false  # Costs extra, enable in production
+  default     = false # Costs extra, enable in production
 }
 
 variable "enable_encryption" {
   type        = bool
   description = "Enable server-side encryption at rest"
-  default     = true  # Security best practice
+  default     = true # Security best practice
 }
 
 variable "kms_key_arn" {
