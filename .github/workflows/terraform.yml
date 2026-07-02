@@ -67,28 +67,28 @@ jobs:
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Terraform Format
-        run: terraform fmt -check -recursive
+        run: terraform fmt -check -recursive head/infra
 
       - name: Terraform Init
         run: |
-          terraform -chdir=${{ env.TF_ROOT }} init \
+          terraform -chdir=head/infra init \
             -backend-config="bucket=${{ secrets.TF_BACKEND_BUCKET }}" \
             -backend-config="key=${{ env.TF_STATE_KEY }}" \
             -backend-config="region=eu-west-1" \
             -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}"
 
       - name: Terraform Validate
-        run: terraform -chdir=${{ env.TF_ROOT }} validate
+        run: terraform -chdir=head/infra validate
 
       - name: Terraform Plan
         run: |
-          terraform -chdir=${{ env.TF_ROOT }} plan \
-            -var-file=${{ env.TF_VARS_FILE }} \
+          terraform -chdir=head/infra plan \
+            -var-file=../../environments/dev.tfvars \
             -out=tfplan \
             -no-color
 
       - name: Export Plan Text
-        run: terraform -chdir=${{ env.TF_ROOT }} show -no-color tfplan > ${{ env.TF_ROOT }}/tfplan.txt
+        run: terraform -chdir=head/infra show -no-color tfplan > head/infra/tfplan.txt
 
       - name: Infracost Breakdown
         uses: infracost/actions/diff@v4
@@ -102,8 +102,8 @@ jobs:
         with:
           name: tfplan-pr-${{ github.event.pull_request.number }}
           path: |
-            ${{ env.TF_ROOT }}/tfplan
-            ${{ env.TF_ROOT }}/tfplan.txt
+            head/infra/tfplan
+            head/infra/tfplan.txt
           retention-days: 5
 
       - name: Comment plan summary on PR
@@ -111,7 +111,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const plan = fs.readFileSync(`${process.env.TF_ROOT}/tfplan.txt`, 'utf8').slice(0, 60000);
+            const plan = fs.readFileSync('head/infra/tfplan.txt', 'utf8').slice(0, 60000);
             const body = [
               '### Terraform Plan',
               '',
