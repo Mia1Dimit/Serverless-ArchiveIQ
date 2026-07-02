@@ -142,6 +142,16 @@ dynamodb_tables = {
   }
 }
 
+# Lambda Permissions: S3 → Lambda trigger
+lambda_permissions = {
+  s3_document_processor = {
+    function_name = "archiveiq-document-processor-dev"
+    statement_id  = "AllowS3ToInvoke"
+    principal     = "s3.amazonaws.com"
+    source_arn    = "arn:aws:s3:::archiveiq-documents-dev"
+  }
+}
+
 # Bedrock Agent Runtime: Will be configured after agent is created in AWS console or code
 agent_runtime_configurations = {}
 

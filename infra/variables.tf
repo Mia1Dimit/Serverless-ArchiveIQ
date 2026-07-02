@@ -141,3 +141,15 @@ variable "dynamodb_tables" {
   }))
   default = {}
 }
+
+variable "lambda_permissions" {
+  description = "Lambda permission configurations for S3 and other triggers"
+  type = map(object({
+    function_name = string
+    statement_id  = optional(string)
+    action        = optional(string, "lambda:InvokeFunction")
+    principal     = string
+    source_arn    = string
+  }))
+  default = {}
+}

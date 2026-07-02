@@ -1,11 +1,10 @@
-resource "aws_lambda_permission" "allow_s3" {
-  for_each = var.lambda_functions
+module "lambda_permission" {
+  source   = "../modules/lambda-permission"
+  for_each = var.lambda_permissions
 
-  statement_id  = "AllowExecutionFromS3"
-  action        = "lambda:InvokeFunction"
-  function_name = module.lambda_function[each.key].lambda_function_name
-  principal     = "s3.amazonaws.com"
-  source_arn    = "arn:aws:s3:::archiveiq-documents-dev"
-
-  depends_on = [module.lambda_function]
+  statement_id  = each.value.statement_id
+  action        = each.value.action
+  function_name = each.value.function_name
+  principal     = each.value.principal
+  source_arn    = each.value.source_arn
 }
