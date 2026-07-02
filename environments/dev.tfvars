@@ -56,6 +56,26 @@ s3s = {
       Purpose = "Document archive for AI analysis"
     }
   }
+  agentcore_runtime = {
+  name                  = "archiveiq-agentcore-runtime-dev"
+  blockpublicacls       = true
+  blockpublicpolicy     = true
+  ignorepublicacls      = true
+  restrictpublicbuckets = true
+  environment           = "dev"
+  enable_versioning     = "Enabled"
+  rules                 = {}
+  notifications = {
+    lambda_events = {
+      lambda_function = []
+    }
+  }
+  replication_role  = null
+  replication_rules = []
+  specifictags = {
+    Purpose = "AgentCore Runtime code artifacts"
+  }
+}
 }
 
 # Lambda Functions: Document Processor
