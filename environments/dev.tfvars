@@ -47,7 +47,14 @@ s3s = {
     rules                 = {}
     notifications = {
       lambda_events = {
-        lambda_function = []
+        lambda_function = [
+          {
+            id                  = "document-processor"
+            lambda_function_arn = "arn:aws:lambda:eu-central-1:577638377042:function:archiveiq-document-processor-dev"
+            events              = ["s3:ObjectCreated:*"]
+            filter_prefix       = "documents/"
+          }
+        ]
       }
     }
     replication_role  = null
