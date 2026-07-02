@@ -139,6 +139,7 @@ dynamodb_tables = {
       }
     ]
     enable_point_in_time_recovery = false
+    ttl_attribute_name            = "expires_at"
   }
 }
 
