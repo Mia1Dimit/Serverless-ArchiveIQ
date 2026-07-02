@@ -50,8 +50,16 @@ jobs:
       AWS_DEFAULT_REGION: eu-central-1
       TF_TOKEN_your_registry_hostname: ${{ secrets.TF_REGISTRY_TOKEN }}
     steps:
-      - name: Checkout
+      - name: Checkout (Head)
         uses: actions/checkout@v4
+        with:
+          path: head
+
+      - name: Checkout (Base)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          path: base
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -81,6 +89,13 @@ jobs:
 
       - name: Export Plan Text
         run: terraform -chdir=${{ env.TF_ROOT }} show -no-color tfplan > ${{ env.TF_ROOT }}/tfplan.txt
+
+      - name: Infracost Breakdown
+        uses: infracost/actions/diff@v4
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+          base-path: base
+          head-path: head
 
       - name: Upload plan artifact
         uses: actions/upload-artifact@v4
