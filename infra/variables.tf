@@ -120,3 +120,24 @@ variable "agent_runtime_configurations" {
   }))
   default = {}
 }
+
+variable "dynamodb_tables" {
+  description = "DynamoDB table configurations"
+  type = map(object({
+    table_name   = string
+    hash_key     = string
+    range_key    = optional(string)
+    billing_mode = optional(string, "PAY_PER_REQUEST")
+    global_secondary_indexes = optional(list(object({
+      name               = string
+      hash_key           = string
+      range_key          = optional(string)
+      projection_type    = optional(string)
+      non_key_attributes = optional(list(string))
+      read_capacity      = optional(number)
+      write_capacity     = optional(number)
+    })), [])
+    enable_point_in_time_recovery = optional(bool, false)
+  }))
+  default = {}
+}

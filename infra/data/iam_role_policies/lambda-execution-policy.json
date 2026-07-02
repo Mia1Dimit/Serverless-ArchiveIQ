@@ -44,6 +44,14 @@
         "bedrock:InvokeModel"
       ],
       "Resource": "arn:aws:bedrock:*:*:*"
+    },
+    {
+      "Sid": "AgentCoreRuntime",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock-agentcore:InvokeAgentRuntime"
+      ],
+      "Resource": "arn:aws:bedrock-agentcore:*:*:agent-runtime/*"
     }
   ]
 }

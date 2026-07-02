@@ -76,10 +76,64 @@ s3s = {
       Purpose = "AgentCore Runtime code artifacts"
     }
   }
+  results = {
+    name                  = "archiveiq-results-dev"
+    blockpublicacls       = true
+    blockpublicpolicy     = true
+    ignorepublicacls      = true
+    restrictpublicbuckets = true
+    environment           = "dev"
+    enable_versioning     = "Disabled"
+    rules                 = {}
+    notifications = {
+      lambda_events = {
+        lambda_function = []
+      }
+    }
+    replication_role  = null
+    replication_rules = []
+    specifictags = {
+      Purpose = "Classification results output"
+    }
+  }
 }
 
 # Lambda Functions: Document Processor
-lambda_functions = {}
+lambda_functions = {
+  document_processor = {
+    name        = "archiveiq-document-processor-dev"
+    handler     = "handler.handler"
+    runtime     = "python3.12"
+    timeout     = 60
+    memory_size = 256
+    source_dir  = "../lambda"
+    output_path = "/tmp/archiveiq-document-processor-dev.zip"
+    environment_variables = {
+      AGENTCORE_RUNTIME_ARN = "arn:aws:bedrock-agentcore:eu-central-1:577638377042:agent-runtime/archiveiq_agentcore_runtime_dev"
+      RESULTS_BUCKET        = "archiveiq-results-dev"
+      DYNAMODB_TABLE        = "archiveiq-classifications-dev"
+      REGION                = "eu-central-1"
+      MAX_CONTENT_CHARS     = "2000"
+    }
+  }
+}
+
+# DynamoDB Tables
+dynamodb_tables = {
+  classifications = {
+    table_name   = "archiveiq-classifications-dev"
+    hash_key     = "document_id"
+    billing_mode = "PAY_PER_REQUEST"
+    global_secondary_indexes = [
+      {
+        name            = "category-index"
+        hash_key        = "category"
+        projection_type = "ALL"
+      }
+    ]
+    enable_point_in_time_recovery = false
+  }
+}
 
 # Bedrock Agent Runtime: Will be configured after agent is created in AWS console or code
 agent_runtime_configurations = {}
