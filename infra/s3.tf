@@ -3,14 +3,15 @@ locals {
     for item in flatten([
       for ps_key, s3 in var.s3s : [
         for as_key, notification in s3.notifications : {
-          key = as_key
+          key         = as_key
+          bucket_key  = ps_key
           value = {
             lambda_function = notification.lambda_function
             bucket          = module.s3[ps_key].s3-id
           }
         }
       ]
-    ]) : item.key => item.value
+    ]) : "${item.bucket_key}-${item.key}" => item.value
   }
 }
 
