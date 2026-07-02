@@ -90,6 +90,15 @@ jobs:
       - name: Export Plan Text
         run: terraform -chdir=head/infra show -no-color tfplan > head/infra/tfplan.txt
 
+      - name: Infracost Breakdown
+        uses: infracost/actions/diff@v4
+        env:
+          INFRACOST_WARN_ON_FAILURE: "true"
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+          base-path: base
+          head-path: head
+
       - name: Upload plan artifact
         uses: actions/upload-artifact@v4
         with:
