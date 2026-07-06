@@ -153,6 +153,26 @@ lambda_permissions = {
   }
 }
 
-# Bedrock Agent Runtime: Will be configured after agent is created in AWS console or code
-agent_runtime_configurations = {}
+# Bedrock Agent Runtime: PUBLIC mode minimizes networking costs while
+# keeping IAM-based access controls and private data stores.
+agent_runtime_configurations = {
+  document_classifier = {
+    agent_runtime_name = "archiveiq_agentcore_runtime_dev"
+    role_arn           = "arn:aws:iam::577638377042:role/archiveiq-bedrock-agent-runtime-dev"
+    description        = "ArchiveIQ document classification runtime"
+
+    code_configuration = {
+      entry_point = ["agent.py"]
+      runtime     = "PYTHON_3_12"
+      s3_bucket   = "archiveiq-agentcore-runtime-dev"
+      s3_prefix   = "agent/archiveiq-agent.zip"
+    }
+
+    network_mode    = "PUBLIC"
+    server_protocol = "HTTP"
+    environment_variables = {
+      LOG_LEVEL = "INFO"
+    }
+  }
+}
 
