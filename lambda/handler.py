@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from urllib.parse import unquote_plus
 
 import boto3
@@ -108,6 +108,9 @@ def write_result_to_s3(result_key, classification):
 def write_to_dynamodb(document_id, s3_uri, result_uri, classification, status):
     table = dynamodb.Table(DYNAMODB_TABLE)
 
+    # Calculate TTL: 30 days from now in Unix timestamp
+    expires_at = int((datetime.now(timezone.utc) + timedelta(days=30)).timestamp())
+
     item = {
         "document_id": document_id,
         "s3_uri": s3_uri,
@@ -116,6 +119,7 @@ def write_to_dynamodb(document_id, s3_uri, result_uri, classification, status):
         "reasoning": classification.get("reasoning", ""),
         "classified_at": datetime.now(timezone.utc).isoformat(),
         "status": status,
+        "expires_at": expires_at,
     }
 
     if result_uri:

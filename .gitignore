@@ -1,1 +1,8 @@
 PROJECT_SETUP.md
+
+# Terraform local state and lock files
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+

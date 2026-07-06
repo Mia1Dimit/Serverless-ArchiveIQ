@@ -47,7 +47,14 @@ s3s = {
     rules                 = {}
     notifications = {
       lambda_events = {
-        lambda_function = []
+        lambda_function = [
+          {
+            id                  = "document-processor"
+            lambda_function_arn = "arn:aws:lambda:eu-central-1:577638377042:function:archiveiq-document-processor-dev"
+            events              = ["s3:ObjectCreated:*"]
+            filter_prefix       = "documents/"
+          }
+        ]
       }
     }
     replication_role  = null
@@ -109,7 +116,7 @@ lambda_functions = {
     source_dir  = "../lambda"
     output_path = "/tmp/archiveiq-document-processor-dev.zip"
     environment_variables = {
-      AGENTCORE_RUNTIME_ARN = "arn:aws:bedrock-agentcore:eu-central-1:577638377042:agent-runtime/archiveiq_agentcore_runtime_dev"
+      AGENTCORE_RUNTIME_ARN = "arn:aws:bedrock-agentcore:eu-central-1:577638377042:runtime/archiveiq_agentcore_runtime_dev-sXcrbz9HlW"
       RESULTS_BUCKET        = "archiveiq-results-dev"
       DYNAMODB_TABLE        = "archiveiq-classifications-dev"
       REGION                = "eu-central-1"
@@ -132,9 +139,40 @@ dynamodb_tables = {
       }
     ]
     enable_point_in_time_recovery = false
+    ttl_attribute_name            = "expires_at"
   }
 }
 
-# Bedrock Agent Runtime: Will be configured after agent is created in AWS console or code
-agent_runtime_configurations = {}
+# Lambda Permissions: S3 → Lambda trigger
+lambda_permissions = {
+  s3_document_processor = {
+    function_name = "archiveiq-document-processor-dev"
+    statement_id  = "AllowS3ToInvoke"
+    principal     = "s3.amazonaws.com"
+    source_arn    = "arn:aws:s3:::archiveiq-documents-dev"
+  }
+}
+
+# Bedrock Agent Runtime: PUBLIC mode minimizes networking costs while
+# keeping IAM-based access controls and private data stores.
+agent_runtime_configurations = {
+  document_classifier = {
+    agent_runtime_name = "archiveiq_agentcore_runtime_dev"
+    role_arn           = "arn:aws:iam::577638377042:role/archiveiq-bedrock-agent-runtime-dev"
+    description        = "ArchiveIQ document classification runtime"
+
+    code_configuration = {
+      entry_point = ["agent.py"]
+      runtime     = "PYTHON_3_12"
+      s3_bucket   = "archiveiq-agentcore-runtime-dev"
+      s3_prefix   = "agent/archiveiq-agent.zip"
+    }
+
+    network_mode    = "PUBLIC"
+    server_protocol = "HTTP"
+    environment_variables = {
+      LOG_LEVEL = "INFO"
+    }
+  }
+}
 

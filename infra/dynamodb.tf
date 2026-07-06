@@ -9,6 +9,7 @@ module "dynamodb" {
 
   global_secondary_indexes      = each.value.global_secondary_indexes
   enable_point_in_time_recovery = each.value.enable_point_in_time_recovery
+  ttl_attribute_name            = each.value.ttl_attribute_name
 
   applicationid   = var.applicationid
   applicationname = var.applicationname

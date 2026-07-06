@@ -138,6 +138,19 @@ variable "dynamodb_tables" {
       write_capacity     = optional(number)
     })), [])
     enable_point_in_time_recovery = optional(bool, false)
+    ttl_attribute_name            = optional(string)
+  }))
+  default = {}
+}
+
+variable "lambda_permissions" {
+  description = "Lambda permission configurations for S3 and other triggers"
+  type = map(object({
+    function_name = string
+    statement_id  = optional(string)
+    action        = optional(string, "lambda:InvokeFunction")
+    principal     = string
+    source_arn    = string
   }))
   default = {}
 }
