@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 from datetime import datetime, timezone, timedelta
 from urllib.parse import unquote_plus
 
@@ -83,17 +84,44 @@ def read_s3_object(bucket, key):
 
 
 def invoke_agentcore(s3_uri, content):
+    """
+    Invoke AgentCore runtime with retry logic for cold starts.
+    
+    AgentCore has a 30-second hard initialization timeout in PUBLIC mode.
+    On first invocation, the runtime may timeout. Retrying after a brief
+    delay allows the runtime to initialize.
+    """
     payload = json.dumps({"s3_uri": s3_uri, "content": content})
+    max_retries = 2
+    retry_delay = 5  # seconds
 
-    response = agentcore.invoke_agent_runtime(
-        agentRuntimeArn=AGENTCORE_RUNTIME_ARN,
-        payload=payload,
-        contentType="application/json",
-        accept="application/json",
-    )
+    for attempt in range(max_retries):
+        try:
+            logger.info(f"Invoking AgentCore runtime (attempt {attempt + 1}/{max_retries})")
+            
+            response = agentcore.invoke_agent_runtime(
+                agentRuntimeArn=AGENTCORE_RUNTIME_ARN,
+                payload=payload,
+                contentType="application/json",
+                accept="application/json",
+            )
 
-    response_body = response["body"].read().decode("utf-8")
-    return json.loads(response_body)
+            response_body = response["body"].read().decode("utf-8")
+            return json.loads(response_body)
+        
+        except Exception as e:
+            error_msg = str(e)
+            is_timeout = "initialization time exceeded" in error_msg.lower()
+            
+            # Retry on initialization timeout
+            if is_timeout and attempt < max_retries - 1:
+                logger.warning(f"AgentCore runtime cold start timeout (attempt {attempt + 1}). Retrying in {retry_delay}s...")
+                time.sleep(retry_delay)
+                continue
+            
+            # Re-raise error if not a recoverable timeout or last retry
+            logger.error(f"AgentCore invocation failed: {error_msg}")
+            raise
 
 
 def write_result_to_s3(result_key, classification):
