@@ -8,8 +8,12 @@
 resource "aws_dynamodb_table" "table" {
   name         = var.table_name
   billing_mode = var.billing_mode
-  hash_key     = var.hash_key
-  range_key    = var.range_key
+
+  # Primary key schema (hash_key and optional range_key)
+  key_schema = concat(
+    [{ attribute_name = var.hash_key, key_type = "HASH" }],
+    var.range_key != null ? [{ attribute_name = var.range_key, key_type = "RANGE" }] : []
+  )
 
   # Read/Write capacity (only used if billing_mode = PROVISIONED)
   read_capacity  = var.billing_mode == "PROVISIONED" ? var.read_capacity : null

@@ -39,4 +39,7 @@ module "s3-bucket-notification" {
 
   bucket           = each.value.bucket
   lambda_functions = each.value.lambda_function
+
+  # Ensure Lambda permissions are created before S3 notifications
+  depends_on = [module.lambda_permission]
 }
