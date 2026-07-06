@@ -51,7 +51,7 @@
       "Action": [
         "bedrock-agentcore:InvokeAgentRuntime"
       ],
-      "Resource": "arn:aws:bedrock-agentcore:*:*:agent-runtime/*"
+      "Resource": "arn:aws:bedrock-agentcore:*:*:runtime/*"
     }
   ]
 }
