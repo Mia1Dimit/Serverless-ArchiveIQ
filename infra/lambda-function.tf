@@ -1,3 +1,16 @@
+locals {
+  # Build environment variables with actual runtime ARN from deployed module
+  lambda_env_vars = {
+    for key, lambda_config in var.lambda_functions : key => merge(
+      lambda_config.environment_variables,
+      {
+        # Inject actual agent runtime ARN from module output
+        AGENTCORE_RUNTIME_ARN = try(module.agent-runtime["document_classifier"].agent_runtime_arn, lambda_config.environment_variables.AGENTCORE_RUNTIME_ARN)
+      }
+    )
+  }
+}
+
 module "lambda_function" {
   source   = "../modules/lambda-function"
   for_each = var.lambda_functions
@@ -8,7 +21,7 @@ module "lambda_function" {
   runtime               = each.value.runtime
   timeout               = each.value.timeout
   memory_size           = each.value.memory_size
-  environment_variables = each.value.environment_variables
+  environment_variables = local.lambda_env_vars[each.key]
   vpc_config            = each.value.vpc_config
   source_dir            = each.value.source_dir
   output_path           = each.value.output_path
@@ -18,5 +31,5 @@ module "lambda_function" {
   environment     = var.environment
   specifictags    = {}
 
-  depends_on = [module.aws-iam-role]
+  depends_on = [module.aws-iam-role, module.agent-runtime]
 }
