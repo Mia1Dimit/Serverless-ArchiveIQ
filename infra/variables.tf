@@ -124,11 +124,11 @@ variable "agent_runtime_configurations" {
 variable "dynamodb_tables" {
   description = "DynamoDB table configurations"
   type = map(object({
-    table_name                    = string
-    hash_key                      = string
-    range_key                     = optional(string)
-    billing_mode                  = optional(string, "PAY_PER_REQUEST")
-    global_secondary_indexes      = optional(list(object({
+    table_name   = string
+    hash_key     = string
+    range_key    = optional(string)
+    billing_mode = optional(string, "PAY_PER_REQUEST")
+    global_secondary_indexes = optional(list(object({
       name               = string
       hash_key           = string
       range_key          = optional(string)
