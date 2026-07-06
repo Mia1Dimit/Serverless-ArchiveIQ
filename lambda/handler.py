@@ -87,7 +87,7 @@ def invoke_agentcore(s3_uri, content):
 
     response = agentcore.invoke_agent_runtime(
         agentRuntimeArn=AGENTCORE_RUNTIME_ARN,
-        body=payload,
+        payload=payload,
         contentType="application/json",
         accept="application/json",
     )
