@@ -80,6 +80,16 @@ jobs:
       - name: Terraform Validate
         run: terraform -chdir=head/infra validate
 
+      - name: Setup Python for Agent Build
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Build and Deploy AgentCore Package
+        run: |
+          cd head/agent
+          python build.py
+
       - name: Terraform Plan
         run: |
           terraform -chdir=head/infra plan \
@@ -158,6 +168,16 @@ jobs:
             -backend-config="region=eu-west-1" \
             -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}" \
             -lock-timeout=5m
+
+      - name: Setup Python for Agent Build
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Build and Deploy AgentCore Package
+        run: |
+          cd agent
+          python build.py
 
       - name: Terraform Plan
         run: |
