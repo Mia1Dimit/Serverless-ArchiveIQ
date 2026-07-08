@@ -22,7 +22,7 @@ def handler(payload, context):
             "content_preview": "First 500 chars of content"
         }
     """
-    # boto3 already imported at module level
+    # Create boto3 client inside handler to avoid slow initialization during module loading
     bedrock = boto3.client("bedrock-runtime", region_name="eu-central-1")
     try:
         s3_uri = payload.get("s3_uri", "")
