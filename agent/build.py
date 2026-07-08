@@ -52,7 +52,7 @@ def main():
     
     # Check file size
     size_mb = os.path.getsize(ZIP_FILE) / (1024 * 1024)
-    print(f"✓ Created {ZIP_FILE} ({size_mb:.2f} MB)")
+    print(f"[OK] Created {ZIP_FILE} ({size_mb:.2f} MB)")
     
     # Upload to S3
     print(f"Uploading to s3://{BUCKET}/agent/{ZIP_FILE}...")
@@ -66,7 +66,7 @@ def main():
         print(f"Error uploading to S3: {e}")
         return 1
     
-    print("✓ Upload complete")
+    print("[OK] Upload complete")
     print("")
     print("Ready to deploy with terraform apply")
     return 0
