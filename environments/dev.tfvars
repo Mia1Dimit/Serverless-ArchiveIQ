@@ -162,7 +162,7 @@ agent_runtime_configurations = {
     description        = "ArchiveIQ document classification runtime"
 
     code_configuration = {
-      entry_point = ["agent.py"]
+      entry_point = ["agent.handler"]
       runtime     = "PYTHON_3_12"
       s3_bucket   = "archiveiq-agentcore-runtime-dev"
       s3_prefix   = "agent/archiveiq-agent.zip"
