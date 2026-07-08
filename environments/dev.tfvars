@@ -111,7 +111,7 @@ lambda_functions = {
     name        = "archiveiq-document-processor-dev"
     handler     = "handler.handler"
     runtime     = "python3.12"
-    timeout     = 120
+    timeout     = 180
     memory_size = 256
     source_dir  = "../lambda"
     output_path = "/tmp/archiveiq-document-processor-dev.zip"
@@ -162,7 +162,7 @@ agent_runtime_configurations = {
     description        = "ArchiveIQ document classification runtime"
 
     code_configuration = {
-      entry_point = ["agent.handler"]
+      entry_point = ["agent.py"]
       runtime     = "PYTHON_3_12"
       s3_bucket   = "archiveiq-agentcore-runtime-dev"
       s3_prefix   = "agent/archiveiq-agent.zip"

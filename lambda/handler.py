@@ -92,8 +92,8 @@ def invoke_agentcore(s3_uri, content):
     delay allows the runtime to initialize.
     """
     payload = json.dumps({"s3_uri": s3_uri, "content": content})
-    max_retries = 2
-    retry_delay = 5  # seconds
+    max_retries = 3
+    retry_delays = [5, 30]  # seconds between retries: 5s after 1st attempt, 30s after 2nd
 
     for attempt in range(max_retries):
         try:
@@ -115,8 +115,9 @@ def invoke_agentcore(s3_uri, content):
             
             # Retry on initialization timeout
             if is_timeout and attempt < max_retries - 1:
-                logger.warning(f"AgentCore runtime cold start timeout (attempt {attempt + 1}). Retrying in {retry_delay}s...")
-                time.sleep(retry_delay)
+                delay = retry_delays[attempt] if attempt < len(retry_delays) else 30
+                logger.warning(f"AgentCore runtime cold start timeout (attempt {attempt + 1}). Retrying in {delay}s...")
+                time.sleep(delay)
                 continue
             
             # Re-raise error if not a recoverable timeout or last retry
