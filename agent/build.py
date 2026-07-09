@@ -25,18 +25,23 @@ def main():
     with tempfile.TemporaryDirectory() as build_dir:
         print(f"Installing dependencies to {build_dir}...")
         
-        # Install dependencies
+        # Install dependencies with ARM64 platform support
         try:
             subprocess.run(
                 [sys.executable, "-m", "pip", "install", 
                  "-r", "requirements.txt", 
-                 "--target", build_dir, 
+                 "--target", build_dir,
+                 "--platform", "manylinux2014_aarch64",
+                 "--only-binary=:all:",
+                 "--python-version", "3.12",
                  "--quiet"],
                 check=True,
                 cwd=os.path.dirname(os.path.abspath(__file__))
             )
         except subprocess.CalledProcessError as e:
             print(f"Error installing dependencies: {e}")
+            print("Tip: If some dependencies lack ARM64 wheels, try without --only-binary=:all:")
+            print("  pip install -r requirements.txt --target build_dir --platform manylinux2014_aarch64 --python-version 3.12")
             return 1
         
         print("Copying agent code...")
