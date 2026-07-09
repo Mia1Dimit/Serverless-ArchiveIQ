@@ -1,2 +1,2 @@
 boto3==1.28.85
-anthropic==0.28.0
+bedrock-agentcore
