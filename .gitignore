@@ -7,3 +7,5 @@ PROJECT_SETUP.md
 *.tfstate.*
 
 agent/archiveiq-agent.zip
+
+__pycache__/
