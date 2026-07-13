@@ -31,7 +31,7 @@ Respond with ONLY valid JSON:
         contentType="application/json",
         accept="application/json",
         body=json.dumps({
-            "anthropic_version": "bedrock-2023-06-01",
+            "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": 256,
             "messages": [{"role": "user", "content": prompt}]
         })
