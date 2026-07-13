@@ -132,7 +132,7 @@ Respond with ONLY valid JSON:
 
 # Start HTTP server in background thread immediately at module load
 def start_server():
-    server = HTTPServer(("0.0.0.0", 8000), RequestHandler)
+    server = HTTPServer(("0.0.0.0", 8080), RequestHandler)
     server.serve_forever()
 
 _server_thread = threading.Thread(target=start_server, daemon=False)
