@@ -85,10 +85,36 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Build and Deploy AgentCore Package
+      - name: Build AgentCore deployment package
         run: |
           cd head/agent
-          python build.py
+          rm -rf build archiveiq-agent.zip
+          mkdir build
+          pip install boto3 bedrock-agentcore \
+            -t build \
+            --platform manylinux2014_aarch64 \
+            --only-binary=:all: \
+            --python-version 3.12 \
+            --upgrade \
+            --no-cache-dir
+          cp agent.py build/
+          find build -name "__pycache__" -exec rm -rf {} +
+          # verify before zipping
+          test -f build/agent.py || { echo "agent.py missing from build"; exit 1; }
+          test -d build/boto3 || { echo "boto3 missing from build"; exit 1; }
+          cd build && zip -r ../archiveiq-agent.zip . && cd ..
+
+      - name: Upload AgentCore package to S3
+        run: |
+          aws s3 cp head/agent/archiveiq-agent.zip s3://archiveiq-agentcore-runtime-dev/agent/archiveiq-agent.zip
+
+      - name: Update AgentCore runtime
+        run: |
+          aws bedrock-agentcore-control update-agent-runtime \
+            --agent-runtime-id archiveiq_agent_classifier_dev-K4LzgE3trT \
+            --agent-runtime-artifact '{"codeConfiguration":{"code":{"s3":{"bucket":"archiveiq-agentcore-runtime-dev","prefix":"agent/archiveiq-agent.zip"}},"runtime":"PYTHON_3_12","entryPoint":["agent.py"]}}' \
+            --network-configuration '{"networkMode":"PUBLIC"}' \
+            --role-arn arn:aws:iam::577638377042:role/archiveiq-bedrock-agent-runtime-dev
 
       - name: Terraform Plan
         run: |

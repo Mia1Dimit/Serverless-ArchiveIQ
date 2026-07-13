@@ -9,3 +9,8 @@ PROJECT_SETUP.md
 agent/archiveiq-agent.zip
 
 __pycache__/
+
+boto3*/
+bedrock*/
+botocore*/
+s3*/
