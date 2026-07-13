@@ -27,7 +27,7 @@ Respond with ONLY valid JSON:
 {{"category": "CATEGORY_NAME", "confidence": 0.95, "reasoning": "why"}}"""
 
     response = bedrock.invoke_model(
-        modelId="anthropic.claude-haiku-4-5-20251001-v1:0",
+        modelId="eu.anthropic.claude-haiku-4-5-20251001-v1:0",
         contentType="application/json",
         accept="application/json",
         body=json.dumps({
