@@ -155,11 +155,12 @@ lambda_permissions = {
 
 # Bedrock Agent Runtime: PUBLIC mode minimizes networking costs while
 # keeping IAM-based access controls and private data stores.
+# Updated: 2026-07-09 10:43 with background thread server startup
 agent_runtime_configurations = {
   document_classifier = {
     agent_runtime_name = "archiveiq_agent_classifier_dev"
     role_arn           = "arn:aws:iam::577638377042:role/archiveiq-bedrock-agent-runtime-dev"
-    description        = "ArchiveIQ document classification runtime"
+    description        = "ArchiveIQ document classification runtime - ultra-minimal-code v9"
 
     code_configuration = {
       entry_point = ["agent.py"]
@@ -172,6 +173,7 @@ agent_runtime_configurations = {
     server_protocol = "HTTP"
     environment_variables = {
       LOG_LEVEL = "INFO"
+      DEPLOY_ID = "202607091045"
     }
   }
 }

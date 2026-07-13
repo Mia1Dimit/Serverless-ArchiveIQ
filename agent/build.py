@@ -26,6 +26,7 @@ def main():
         print(f"Installing dependencies to {build_dir}...")
         
         # Install dependencies with ARM64 platform support
+        # First try with only binary wheels
         try:
             subprocess.run(
                 [sys.executable, "-m", "pip", "install", 
@@ -39,10 +40,22 @@ def main():
                 cwd=os.path.dirname(os.path.abspath(__file__))
             )
         except subprocess.CalledProcessError as e:
-            print(f"Error installing dependencies: {e}")
-            print("Tip: If some dependencies lack ARM64 wheels, try without --only-binary=:all:")
-            print("  pip install -r requirements.txt --target build_dir --platform manylinux2014_aarch64 --python-version 3.12")
-            return 1
+            print(f"Warning: Binary-only install failed, trying with source builds...")
+            # Fallback: allow source builds for dependencies without binary wheels
+            try:
+                subprocess.run(
+                    [sys.executable, "-m", "pip", "install", 
+                     "-r", "requirements.txt", 
+                     "--target", build_dir,
+                     "--platform", "manylinux2014_aarch64",
+                     "--python-version", "3.12",
+                     "--quiet"],
+                    check=True,
+                    cwd=os.path.dirname(os.path.abspath(__file__))
+                )
+            except subprocess.CalledProcessError as e2:
+                print(f"Error installing dependencies: {e2}")
+                return 1
         
         print("Copying agent code...")
         shutil.copy("agent.py", os.path.join(build_dir, "agent.py"))
