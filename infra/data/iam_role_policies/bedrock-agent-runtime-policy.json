@@ -44,6 +44,15 @@
         "bedrock:InvokeModelWithResponseStream"
       ],
       "Resource": "arn:aws:bedrock:*::foundation-model/*"
-    }
+    },
+    {
+      "Sid": "BedrockInferenceProfiles",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:InvokeModel",
+        "bedrock:InvokeModelWithResponseStream"
+      ],
+      "Resource": "arn:aws:bedrock:*:*:inference-profile/*"
+}
   ]
 }
