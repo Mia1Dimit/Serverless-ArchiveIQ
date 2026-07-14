@@ -106,7 +106,7 @@ def invoke_agentcore(s3_uri, content):
                 accept="application/json",
             )
 
-            response_body = response["body"].read().decode("utf-8")
+            response_body = response["response"].read().decode("utf-8")
             return json.loads(response_body)
         
         except Exception as e:
