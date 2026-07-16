@@ -341,3 +341,4 @@ bash run_tests.sh                 # Full suite (INVOICE, CONTRACT, REPORT, OTHER
 ✅ AgentCore runtime with deferred imports  
 ✅ Lambda with 3-retry backoff strategy  
 ⚠️ AgentCore 30s initialization limit requires mitigation
+# testing mcp inspector
